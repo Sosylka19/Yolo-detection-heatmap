@@ -1,0 +1,23 @@
+services:
+  app:
+    container_name: app
+    build:
+      context: .
+      dockerfile: Dockerfile
+    command: python -m src.gui.main
+    environment:
+      GRADIO_SERVER_NAME: 0.0.0.0
+      GRADIO_SERVER_PORT: "7860"
+      HF_HOME: /cache/hf
+    ports:
+      - "7860:7860"      
+    volumes:
+      - ./data:/code/data        
+      - ./outputs:/code/outputs   
+      - hf-cache:/cache/hf        
+    restart: unless-stopped
+
+
+volumes:
+  hf-cache:
+    
