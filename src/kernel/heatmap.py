@@ -32,7 +32,7 @@ class Heatmap:
         """
         img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         img_blur = cv2.GaussianBlur(img_gray, (5, 5), 25)
-        img_canny = cv2.Canny(img_blur, 5, 50)
+        img_canny = cv2.Canny(img_blur, 5, 30)
         kernel = np.ones((3, 3), np.uint8)
         img_dilate = cv2.dilate(img_canny, kernel, iterations=4)
         img_erode = cv2.erode(img_dilate, kernel, iterations=1)
@@ -91,6 +91,7 @@ class Heatmap:
             for f in self.frames():
                 start_frame = f.frame_bgr
                 frame = f.overlay_bgr
+                # frame = f.mask
                 if (frame.shape[1], frame.shape[0]) != (width, height):
                     frame = cv2.resize(frame, (width, height), interpolation=cv2.INTER_LINEAR)
                     start_frame = cv2.resize(start_frame, (width, height), interpolation=cv2.INTER_LINEAR)
@@ -125,23 +126,23 @@ class Heatmap:
             if writer is not None:
                 writer.release()
 
+import os
 
-# import cv2
-# import os
+if __name__ == "__main__":
+    test_video = "data/5753_Tokyo_Japan_1280x720.mp4"   # путь до видео для проверки
+    if not os.path.exists(test_video):
+        raise FileNotFoundError(f"Нет файла {test_video}")
+    d = Heatmap(test_video, cv2.COLORMAP_HSV, 0, 18)
+    for out_path in d.output():
+        cap = cv2.VideoCapture(out_path)
+        while True:
+            ok, frame = cap.read()
+            if not ok:
+                break
+            cv2.imshow("Detector output", frame)
+            if cv2.waitKey(30) & 0xFF == 27:
+                break
+        cap.release()
 
-# if __name__ == "__main__":
-#     test_video = "data/5497_Francisco_San_1280x720.mp4"  
-#     h = Heatmap(test_video)
-#     first = next(h.output())
-#     cap = cv2.VideoCapture(first)
-#     for frame in h.output():
-#         cap = cv2.VideoCapture(frame)
-#         ok, fr = cap.read()
-#         cv2.imshow("Bla",fr)
-#     cap.release()
-
-    
-
-
-#     cv2.destroyAllWindows()
+    cv2.destroyAllWindows()
             

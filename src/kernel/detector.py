@@ -1,89 +1,93 @@
-import cv2
-import numpy as np
-from typing import Iterator
-import uuid
-from huggingface_hub import snapshot_download
-import torch
-from PIL import Image
-
-from transformers import RTDetrForObjectDetection, RTDetrImageProcessor
-from src.kernel.draw_boxes import draw_bounding_boxes
-
-CUDA = torch.cuda.is_available()
-
-local_dir = snapshot_download("PekingU/rtdetr_r50vd")
-image_processor = RTDetrImageProcessor.from_pretrained(local_dir)
-if CUDA:
-    model = RTDetrForObjectDetection.from_pretrained(local_dir).to("cuda")
-elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-    model = RTDetrForObjectDetection.from_pretrained(local_dir).to("mps")
-else:
-    model = RTDetrForObjectDetection.from_pretrained(local_dir).to("cpu")
+## ЗДЕСЬ ТЯЖЕЛЫЙ ИНФЕРЕНС НА RTDetr
 
 
-SUBSAMPLE = 4
 
-class Detector:
-    def __init__(self, video, conf_threshold):
-        self.cap = cv2.VideoCapture(video)
-        self.threshold = conf_threshold
-        self.video_codec = cv2.VideoWriter_fourcc(*"mp4v")
-        self.fps = int(self.cap.get(cv2.CAP_PROP_FPS))
-        self.desired_fps = self.fps // SUBSAMPLE
-        self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)) // 2
-        self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) // 2
+# import cv2
+# import numpy as np
+# from typing import Iterator
+# import uuid
+# from huggingface_hub import snapshot_download
+# import torch
+# from PIL import Image
 
-    def stream_object_detection(self):
+# from transformers import RTDetrForObjectDetection, RTDetrImageProcessor
+# from src.kernel.draw_boxes import draw_bounding_boxes
 
-        ok, frame = self.cap.read()
+# CUDA = torch.cuda.is_available()
 
-        n_frames = 0
+# local_dir = snapshot_download("PekingU/rtdetr_r50vd")
+# image_processor = RTDetrImageProcessor.from_pretrained(local_dir)
+# if CUDA:
+#     model = RTDetrForObjectDetection.from_pretrained(local_dir).to("cuda")
+# elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+#     model = RTDetrForObjectDetection.from_pretrained(local_dir).to("mps")
+# else:
+#     model = RTDetrForObjectDetection.from_pretrained(local_dir).to("cpu")
 
-        output_video_name = f"data/output_{uuid.uuid4()}.mp4"
 
-        output_video = cv2.VideoWriter(output_video_name, self.video_codec, self.desired_fps, 
-                                    (self.width, self.height))
-        batch = []
+# SUBSAMPLE = 4
 
-        while ok:
-            frame = cv2.resize(frame, (0, 0), fx = 0.5, fy = 0.5)
-            frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
-            if n_frames % SUBSAMPLE == 0:
-                batch.append(frame)
-            if len(batch) == 2 * self.desired_fps:
-                if CUDA:
-                    inputs = image_processor(images=batch, return_tensors="pt").to("cuda")
-                elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
-                    inputs = image_processor(images=batch, return_tensors="pt").to("mps")
-                else:
-                    inputs = image_processor(images=batch, return_tensors="pt").to("cpu")
+# class Detector:
+#     def __init__(self, video, conf_threshold):
+#         self.cap = cv2.VideoCapture(video)
+#         self.threshold = conf_threshold
+#         self.video_codec = cv2.VideoWriter_fourcc(*"mp4v")
+#         self.fps = int(self.cap.get(cv2.CAP_PROP_FPS))
+#         self.desired_fps = self.fps // SUBSAMPLE
+#         self.width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH)) // 2
+#         self.height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT)) // 2
 
-                with torch.no_grad():
-                    outputs = model(**inputs)
+#     def stream_object_detection(self):
+
+#         ok, frame = self.cap.read()
+
+#         n_frames = 0
+
+#         output_video_name = f"data/output_{uuid.uuid4()}.mp4"
+
+#         output_video = cv2.VideoWriter(output_video_name, self.video_codec, self.desired_fps, 
+#                                     (self.width, self.height))
+#         batch = []
+
+#         while ok:
+#             frame = cv2.resize(frame, (0, 0), fx = 0.5, fy = 0.5)
+#             frame = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
+#             if n_frames % SUBSAMPLE == 0:
+#                 batch.append(frame)
+#             if len(batch) == 2 * self.desired_fps:
+#                 if CUDA:
+#                     inputs = image_processor(images=batch, return_tensors="pt").to("cuda")
+#                 elif hasattr(torch.backends, "mps") and torch.backends.mps.is_available():
+#                     inputs = image_processor(images=batch, return_tensors="pt").to("mps")
+#                 else:
+#                     inputs = image_processor(images=batch, return_tensors="pt").to("cpu")
+
+#                 with torch.no_grad():
+#                     outputs = model(**inputs)
 
                 
-                boxes = image_processor.post_process_object_detection(
-                    outputs, 
-                    target_sizes=torch.tensor([(self.height, self.width)] * len(batch)),
-                    threshold=self.threshold
-                )
+#                 boxes = image_processor.post_process_object_detection(
+#                     outputs, 
+#                     target_sizes=torch.tensor([(self.height, self.width)] * len(batch)),
+#                     threshold=self.threshold
+#                 )
 
-                for i, (array, box) in enumerate(zip(batch, boxes)):
-                    pil_image = draw_bounding_boxes(Image.fromarray(array), box, 
-                                                    model, self.threshold)
-                    frame = np.array(pil_image)
-                    frame = frame[:, :, ::-1].copy()
-                    output_video.write(frame)
+#                 for i, (array, box) in enumerate(zip(batch, boxes)):
+#                     pil_image = draw_bounding_boxes(Image.fromarray(array), box, 
+#                                                     model, self.threshold)
+#                     frame = np.array(pil_image)
+#                     frame = frame[:, :, ::-1].copy()
+#                     output_video.write(frame)
 
-                batch = []
-                output_video.release()
-                yield output_video_name
-                output_video_name = f"data/output_{uuid.uuid4()}.mp4"
-                output_video = cv2.VideoWriter(output_video_name, self.video_codec,
-                                            self.desired_fps, (self.width, self.height))
+#                 batch = []
+#                 output_video.release()
+#                 yield output_video_name
+#                 output_video_name = f"data/output_{uuid.uuid4()}.mp4"
+#                 output_video = cv2.VideoWriter(output_video_name, self.video_codec,
+#                                             self.desired_fps, (self.width, self.height))
                 
-            ok, frame = self.cap.read()
-            n_frames += 1
+#             ok, frame = self.cap.read()
+#             n_frames += 1
 
 #тут проверка работы на локалке 
 

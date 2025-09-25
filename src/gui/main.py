@@ -1,4 +1,3 @@
-import cv2
 import gradio as gr
 
 from src.gui.interface import get_generators
@@ -18,9 +17,9 @@ with gr.Blocks() as demo:
                 #доделать тут
         with gr.Column():
             colormap = gr.Radio(
-                    ["Autumn", "Bone", "Jet", "HSV", "Inferno"],
+                    ["Cool", "Bone", "Jet", "HSV", "Inferno"],
                      label="Choose Colormap(OpenCV)",
-                    value="HSV"
+                    value="Cool"
                 )
         with gr.Column():
              timezone_start = gr.Number(
@@ -36,8 +35,6 @@ with gr.Blocks() as demo:
     with gr.Row():
         with gr.Column():
             video_input = gr.Video(label = "Video Source")
-    with gr.Row():
-        submit = gr.Button("Start")
     with gr.Row():
         with gr.Column():
             output_video_detector = gr.Video(label = "Detected video",  streaming=True,autoplay=True)
@@ -55,4 +52,4 @@ with gr.Blocks() as demo:
 
 
 if __name__ == "__main__":
-    demo.launch()
+    demo.launch(share=True)

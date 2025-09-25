@@ -1,10 +1,10 @@
 import gradio as gr
 import cv2
-from src.kernel.detector import Detector
+from src.kernel.detector_yolo import Detector
 from src.kernel.heatmap import Heatmap
 
 colors = {
-    "Autumn": cv2.COLORMAP_AUTUMN,
+    "Cool": cv2.COLORMAP_COOL,
     "Bone": cv2.COLORMAP_BONE,
     "Jet": cv2.COLORMAP_JET,
     "HSV": cv2.COLORMAP_HSV,
@@ -19,6 +19,8 @@ def get_generators(video, threshold, colormap: str, start: str, end: str):
     if int(start) < 0.0 or int(end) >= video_duration:
         raise gr.Error("Write valid interval", duration=5)
     
+    if int(end) == 0:
+        end = video_duration - 1
     h = Heatmap(video, color, int(start), int(end))
     for path_heatmap in h.output():
         yield (

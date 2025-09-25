@@ -3,8 +3,7 @@ FROM python:3.13-slim
 ENV PYTHONUNBUFFERED=1 \
     PIP_DISABLE_PIP_VERSION_CHECK=1 \
     GRADIO_SERVER_NAME=0.0.0.0 \
-    GRADIO_SERVER_PORT=7860 \
-    HF_HUB_ENABLE_HF_TRANSFER=1
+    GRADIO_SERVER_PORT=7860
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ffmpeg \
