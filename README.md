@@ -9,7 +9,7 @@
 ## Запуск
 Всё достаточно просто!
 1. ```git clone https://git.miem.hse.ru/kg25-26/alseandreev.git```
-2. ```alseandreev```
+2. ```cd alseandreev```
 
 3. ```docker compose up --build```
 
