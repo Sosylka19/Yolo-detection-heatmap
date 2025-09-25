@@ -2,7 +2,7 @@
 
 >Приложение на Gradio+OpenCV+Yolo(сначала пробовал OpenCV, потом тяжелую RTDetr) для детекции обьектов и построения хитмапа
 
-![Фото](https://github.com/Sosylka19/cg/blob/main/example.jpg)
+![Фото](https://git.miem.hse.ru/kg25-26/alseandreev/-/blob/main/example.jpg)
 
 [Ссылка на видеопредставление](https://cloud.mail.ru/public/jKyi/WZ6Bdnuvk)
 
