@@ -9,8 +9,9 @@
 ## Запуск
 Всё достаточно просто!
 1. ```git clone https://git.miem.hse.ru/kg25-26/alseandreev.git```
+2. ```alseandreev```
 
-2. ```docker compose up --build```
+3. ```docker compose up --build```
 
 чуть чуть подождите и вам дропнется url на сайт(если не открывается из терминала, то в браузере напишите localhost:7860)
 
